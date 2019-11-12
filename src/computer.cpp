@@ -627,69 +627,6 @@ void computer::activate_function( computer_action action )
         }
         break;
 
-        case COMPACT_MISS_LAUNCH: {
-            // Target Acquisition.
-            tripoint target = ui::omap::choose_point( 0 );
-            if( target == overmap::invalid_tripoint ) {
-                add_msg( m_info, _( "Target acquisition canceled." ) );
-                return;
-            }
-
-            // TODO: Z
-            target.z = 0;
-
-            if( query_yn( _( "Confirm nuclear missile launch." ) ) ) {
-                add_msg( m_info, _( "Nuclear missile launched!" ) );
-                //Remove the option to fire another missile.
-                options.clear();
-            } else {
-                add_msg( m_info, _( "Nuclear missile launch aborted." ) );
-                return;
-            }
-            g->refresh_all();
-
-            //Put some smoke gas and explosions at the nuke location.
-            const tripoint nuke_location = { g->u.pos() - point( 12, 0 ) };
-            for( const auto &loc : g->m.points_in_radius( nuke_location, 5, 0 ) ) {
-                if( one_in( 4 ) ) {
-                    g->m.add_field( loc, fd_smoke, rng( 1, 9 ) );
-                }
-            }
-
-            //Only explode once. But make it large.
-            explosion_handler::explosion( nuke_location, 2000, 0.7, true );
-
-            //...ERASE MISSILE, OPEN SILO, DISABLE COMPUTER
-            // For each level between here and the surface, remove the missile
-            for( int level = g->get_levz(); level <= 0; level++ ) {
-                map tmpmap;
-                tmpmap.load( tripoint( g->get_levx(), g->get_levy(), level ), false );
-
-                if( level < 0 ) {
-                    tmpmap.translate( t_missile, t_hole );
-                } else {
-                    tmpmap.translate( t_metal_floor, t_hole );
-                }
-                tmpmap.save();
-            }
-
-            const oter_id oter = overmap_buffer.ter( target );
-            g->events().send<event_type::launches_nuke>( oter );
-            for( const tripoint &p : g->m.points_in_radius( target, 2 ) ) {
-                // give it a nice rounded shape
-                if( !( p.x == target.x - 2 && p.y == target.y - 2 ) &&
-                    !( p.x == target.x - 2 && p.y == target.y + 2 ) &&
-                    !( p.x == target.x + 2 && p.y == target.y - 2 ) &&
-                    !( p.x == target.x + 2 && p.y == target.y + 2 ) ) {
-                    // TODO: other Z-levels.
-                    explosion_handler::nuke( tripoint( p.xy(), 0 ) );
-                }
-            }
-
-            activate_failure( COMPFAIL_SHUTDOWN );
-        }
-        break;
-
         case COMPACT_MISS_DISARM: // TODO: stop the nuke from creating radioactive clouds.
             if( query_yn( _( "Disarm missile." ) ) ) {
                 g->events().send<event_type::disarms_nuke>();
