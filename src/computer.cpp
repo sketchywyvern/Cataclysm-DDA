@@ -1610,7 +1610,6 @@ static computer_action computer_action_from_string( const std::string &str )
             { "maps", COMPACT_MAPS },
             { "map_sewer", COMPACT_MAP_SEWER },
             { "map_subway", COMPACT_MAP_SUBWAY },
-            { "miss_launch", COMPACT_MISS_LAUNCH },
             { "miss_disarm", COMPACT_MISS_DISARM },
             { "list_bionics", COMPACT_LIST_BIONICS },
             { "elevator_on", COMPACT_ELEVATOR_ON },
